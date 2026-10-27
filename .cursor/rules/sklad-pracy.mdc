@@ -1,0 +1,18 @@
+---
+description: Skład sprawozdania w Typst
+globs: "**/*.{typ,bib}"
+alwaysApply: true
+---
+
+# Skład
+
+Marginesy, czcionka, interlinia, nagłówek i stopka są w `szablon/czesci/`. Wejście to `szablon/template.typ`. Nie zmieniaj ich w `main.typ`.
+
+- Rozdziały pisze się w `main.typ`, za spisem treści i przed bibliografią.
+- Import na początku `main.typ`: `rysunek`, `tabela`, `listing`, `odnosnik`.
+- Rysunek: `#rysunek(image("/assets/<rozdzial>/plik.png", width: 12cm), [Tytuł]) <etykieta>`. W tekście: `#odnosnik(<etykieta>)`. Pliki graficzne leżą w `assets/<rozdzial>/`.
+- Tabela: `#tabela([Tytuł], table(...)) <etykieta>`. W tekście: `Tabela #odnosnik(<etykieta>)`.
+- Listing w treści: `#listing([Opis], kod, jezyk: "cpp") <etykieta>`. Z pliku: `#listing([Opis], plik: "/kod/plik.cpp", jezyk: "cpp") <etykieta>`. W tekście: `Kod #odnosnik(<etykieta>)`. Załącznik pliku: `zalacznik: true` albo `knobs.kod.zalacznik`. Osobno: `#zalacz("/kod/plik.cpp")`, wyłączenie `wlaczony: false`.
+- Literatura: wpis w pliku bibliografii i `#cite(<klucz>)`. Domyślna ścieżka to `literatura.bib`; inną podaje `#bibliografia(plik: "...")`. Styl numeryczny jest w szablonie. Do bibliografii tylko prace przywołane w tekście.
+- Spis treści, literatura oraz spisy rysunków, tabel i listingów są osobnymi wywołaniami. Każdy wyłącza `wlaczony: false`.
+- W `main.typ` podawaj tylko różnice wobec domyślnych argumentów `praca`. `dokument` domyślnie to „SPRAWOZDANIE”. Stopkę wyłącza `stopka: false`. Strona tytułowa: `strona-tytulowa: "rich"` albo `"prosty"`. Uczelnia i wydział są osobnymi polami. `przedmiot-zapis` to `"pierwsza"` albo `"mala"`. Przy `"prosty"` układ tabeli nadpisuje `tabela-tytulowa` (wiersze z kluczami pól albo funkcja `dane => table(...)`). Przykłady stron są w `przyklady/`. `knobs` nadpisuje stronnicowanie (`"prosty"` albo `"n-z-n"`), `kolor-linku`, `tekst` (`rozmiar`, `interlinia`, `czcionka`, `czcionka-kodu`, `kolor-kodu`) i wygląd kodu. Przy jednym listingu argumenty `numeracja` i `kolory`.

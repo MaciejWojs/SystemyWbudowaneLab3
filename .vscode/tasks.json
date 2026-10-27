@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cleanup ",
+            "command": "rm main.pdf 2>/dev/null; find przyklady -maxdepth 1 -name '*.pdf' -type f -print -exec rm {} + 2>/dev/null; find szablon -maxdepth 2 -name '*.pdf' -type f -print -exec rm {} + 2>/dev/null; ",
+            "type": "shell",
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "compile PDF with typst",
+            "command": "typst compile main.typ",
+            "type": "shell",
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "compile PDF with typst - docker",
+            "command": "docker run --rm --name typst-compile-inzynierka -v $(pwd):/data -w /data ghcr.io/typst/typst compile main.typ",
+            "type": "shell",
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        }
+    ]
+}

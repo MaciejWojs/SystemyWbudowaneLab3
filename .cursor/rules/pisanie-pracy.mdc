@@ -1,0 +1,14 @@
+---
+description: Pisanie sprawozdania w Typst
+globs: main.typ
+alwaysApply: true
+---
+
+# Pisanie sprawozdania
+
+Sprawozdanie po polsku. Skrót rozwinięty przy pierwszym użyciu.
+
+- Rozdziały są w `main.typ`. Potem Literatura oraz spisy rysunków, tabel i listingów.
+- Nagłówek rozdziału to jeden poziom `=`. Podrozdziały `==` i `===`. Bez kropki na końcu tytułu.
+- Nie wymyślaj źródeł ani wyników. Cytowanie: `#cite(<klucz>)`, numer w nawiasie kwadratowym.
+- Rysunek, tabela i listing dopiero po odesłaniu w tekście. Rozdział nie może składać się z samych obiektów.

@@ -1,0 +1,53 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  on-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Is the tag on main?
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Tag ${GITHUB_REF_NAME} points at a commit outside main."
+            exit 1
+          fi
+
+  compile:
+    needs: on-main
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/maciejwojs/ubuntu-typst
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Compile main PDF
+        run: |
+          typst compile main.typ
+
+      - name: Compile example PDFs
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for file in przyklady/*.typ; do
+            typst compile --root . "$file" "${file%.typ}.pdf"
+          done
+
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            main.pdf
+            przyklady/*.pdf
