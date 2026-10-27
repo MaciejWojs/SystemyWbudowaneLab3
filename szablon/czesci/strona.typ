@@ -167,7 +167,12 @@
     #block(width: auto)[
       #set align(left)
       #set par(leading: 0.45em, spacing: 0.2em)
-      #text(size: 14.4pt)[Autorzy:]
+      #if osoby.len() < 2 {
+        text(size: 14.4pt)[Autor:]
+      } else {
+        text(size: 14.4pt)[Autorzy:]
+      }
+      
       #for osoba in osoby [
         #linebreak()
         #text(size: 14.4pt)[#osoba]
