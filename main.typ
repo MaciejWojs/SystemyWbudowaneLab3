@@ -32,7 +32,7 @@
 
 // Zrzut ekranu: szeroki, ograniczona wysokość — dwa mieszczą się na stronie z opisem.
 #let zrzut(sciezka, tytul) = rysunek(
-  image(sciezka, width: 100%, height: 9.5cm, fit: "contain"),
+  image(sciezka, width: 100%, height: 9cm, fit: "contain"),
   tytul,
 )
 
@@ -322,8 +322,6 @@ szeregowo ze stykiem NC na `I3` (NOT $C$). Cewka `Q1` realizuje wyjście $Y$.
   "/assets/zad2/1A-wlaczone-C-wylaczone.png",
   [Zadanie 2: kombinacja z włączonym $A$ i wyłączonym $C$],
 ) <rys-zad2-a>
-
-#pagebreak()
 
 == Testy kombinacji wejściowych
 
