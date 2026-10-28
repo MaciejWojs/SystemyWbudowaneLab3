@@ -41,18 +41,14 @@
   let tekst = stan-knobs.get().tekst
   let rozmiar = tekst.rozmiar
   let interlinia = tekst.interlinia * rozmiar
+  let odstep = 1.5 * interlinia
   set par(first-line-indent: 0pt, justify: false)
-  block(above: 2 * interlinia, below: 2 * interlinia, breakable: true)[
-    #if podpis-nad [
-      #align(center, _podpis(it, nazwa, rozmiar, interlinia))
-      #v(1.3 * interlinia)
-      #align(center, it.body)
-    ] else [
-      #align(center, it.body)
-      #v(interlinia)
-      #align(center, _podpis(it, nazwa, rozmiar, interlinia))
-    ]
-  ]
+  let podpis = block(spacing: odstep, align(center, _podpis(it, nazwa, rozmiar, interlinia)))
+  let lamany = it.kind == "listing"
+  let tresc = block(spacing: odstep, breakable: lamany, align(center, it.body))
+  block(above: 2 * odstep, below: 2 * odstep, breakable: lamany, {
+    if podpis-nad { podpis + tresc } else { tresc + podpis }
+  })
 }
 
 #let numer-w-sekcji(n) = context {

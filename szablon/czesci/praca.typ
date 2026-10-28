@@ -41,6 +41,8 @@
   let kolor-linku = ustawienia.kolor-linku
   let rozmiar = ustawienia.tekst.rozmiar
   let interlinia = ustawienia.tekst.interlinia * rozmiar
+  // Jeden odstęp między blokami: akapitami, listami, wzorami, rysunkami, tabelami i kodem.
+  let odstep = 1.5 * interlinia
   let czcionka = z-priorytetem(ustawienia.tekst.czcionka, font-sans)
   let osoby = bez-pustych(autorzy)
 
@@ -98,7 +100,7 @@
 
   set par(
     leading: interlinia,
-    spacing: interlinia,
+    spacing: odstep,
     justify: true,
     first-line-indent: 0pt,
     linebreaks: "optimized",
@@ -111,8 +113,8 @@
     numbering("(1.1)", rozdzial, n)
   })
   set table(stroke: 0.5pt, inset: (x: 6pt, y: 4pt), align: center)
-  set list(indent: 1.5em, body-indent: 0.5em, spacing: 0.5 * interlinia)
-  set enum(indent: 1.5em, body-indent: 0.5em, spacing: 0.5 * interlinia, numbering: "1)")
+  set list(indent: 1.5em, body-indent: 0.5em, spacing: interlinia)
+  set enum(indent: 1.5em, body-indent: 0.5em, spacing: interlinia, numbering: "1)")
   set footnote.entry(separator: line(length: 4cm, stroke: 0.4pt))
   set bibliography(title: none, style: "ieee")
   set smartquote(quotes: "„”", alternative: true)
@@ -124,13 +126,13 @@
   show heading: set text(font: czcionka, weight: "bold", hyphenate: false)
   show heading: set par(first-line-indent: 0pt, justify: false)
   show heading.where(level: 1): set text(size: 1.44 * rozmiar)
-  show heading.where(level: 1): set block(above: 2 * interlinia, below: 1.45 * interlinia, sticky: true)
+  show heading.where(level: 1): set block(above: 2 * odstep, below: odstep, sticky: true)
   show heading.where(level: 2): set text(size: 1.2 * rozmiar)
-  show heading.where(level: 2): set block(above: 1.45 * interlinia, below: 0.9 * interlinia, sticky: true)
+  show heading.where(level: 2): set block(above: 1.5 * odstep, below: odstep, sticky: true)
   show heading.where(level: 3): set text(size: rozmiar)
-  show heading.where(level: 3): set block(above: 1.15 * interlinia, below: 0.6 * interlinia, sticky: true)
+  show heading.where(level: 3): set block(above: 1.5 * odstep, below: odstep, sticky: true)
   show heading.where(level: 4): set text(size: rozmiar)
-  show heading.where(level: 4): set block(above: 1.15 * interlinia, below: 0.6 * interlinia, sticky: true)
+  show heading.where(level: 4): set block(above: 1.5 * odstep, below: odstep, sticky: true)
   show heading.where(level: 1): it => {
     if it.numbering != none {
       counter(figure.where(kind: image)).update(0)
@@ -176,13 +178,13 @@
   show raw.where(block: true): set text(font: z-priorytetem(ustawienia.tekst.czcionka-kodu, font-mono), size: 1em)
   show raw.where(block: false): it => kod-w-akapicie(it.text)
   show math.equation: set text(weight: "regular")
-  show math.equation.where(block: true): set block(above: interlinia, below: interlinia)
+  show math.equation.where(block: true): set block(above: odstep, below: odstep)
 
   show figure.where(kind: image): it => pokaz-figure(it, nazwa-rysunku, podpis-nad: false)
   show figure.where(kind: table): it => pokaz-figure(it, nazwa-tabeli, podpis-nad: true)
   show figure.where(kind: "listing"): it => pokaz-figure(it, nazwa-listingu, podpis-nad: false)
 
-  show bibliography: set par(justify: false, first-line-indent: 0pt, leading: interlinia, spacing: interlinia)
+  show bibliography: set par(justify: false, first-line-indent: 0pt, leading: interlinia, spacing: odstep)
   show bibliography: set text(size: rozmiar, fill: black)
   show list: set par(first-line-indent: 0pt)
   show enum: set par(first-line-indent: 0pt)
