@@ -186,11 +186,8 @@ funkcji $Y = (A and B) or C$.
 
 == Funkcja kanoniczna i minimalizacja
 
-Z tablicy prawdy widać, że $Y = 1$ dla kombinacji nr 1, 3, 5, 6 i 7, czyli:
-
-$ Y = sum m(1, 3, 5, 6, 7) $
-
-Pełna funkcja (jeszcze przed uproszczeniem):
+Z tablicy prawdy widać, że $Y = 1$ dla kombinacji nr 1, 3, 5, 6 i 7.
+Pełna funkcja (jeszcze przed uproszczeniem) to suma tych przypadków:
 
 $ Y &= (not A and not B and C) \
     & or (not A and B and C) \
@@ -274,11 +271,8 @@ oraz jednocześnie $C = 0$.
 
 == Funkcja kanoniczna i minimalizacja
 
-$Y = 1$ dla kombinacji nr 2, 4 i 6:
-
-$ Y = sum m(2, 4, 6) $
-
-Pełna funkcja:
+$Y = 1$ dla kombinacji nr 2, 4 i 6.
+Pełna funkcja (suma tych przypadków):
 
 $ Y &= (not A and B and not C) \
     & or (A and not B and not C) \
@@ -391,11 +385,8 @@ Układ ma cztery wejścia, dlatego wymaga sprawdzenia $2^4 = 16$ kombinacji
 
 == Funkcja kanoniczna i minimalizacja
 
-$W = 1$ dla kombinacji nr 3, 7, 11, 13 i 15:
-
-$ W = sum m(3, 7, 11, 13, 15) $
-
-Pełna funkcja:
+$W = 1$ dla kombinacji nr 3, 7, 11, 13 i 15.
+Pełna funkcja (suma tych przypadków):
 
 $ W &= (not T and not H and A and C) \
     & or (not T and H and A and C) \
