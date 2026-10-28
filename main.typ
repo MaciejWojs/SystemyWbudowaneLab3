@@ -2,6 +2,7 @@
 // Kompilacja: typst compile main.typ
 
 #import "@preview/zap:0.6.0"
+#import "@preview/karnaugh-express:0.1.1": karnaugh
 
 #import "szablon/template.typ": (
   bibliografia, praca, spis-tresci, spis-rysunkow, spis-tabel, spis-listingow,
@@ -28,6 +29,12 @@
     ..komorki,
   )
 }
+
+// Zrzut ekranu: szeroki, ograniczona wysokość — dwa mieszczą się na stronie z opisem.
+#let zrzut(sciezka, tytul) = rysunek(
+  image(sciezka, width: 100%, height: 9.5cm, fit: "contain"),
+  tytul,
+)
 
 #let schemat-zap-zad1 = zap.circuit({
   import zap: *
@@ -107,8 +114,7 @@ oraz układ sterowania wentylatorem z czterema wejściami.
 Programy przygotowano i przetestowano w środowisku Siemens LOGO! Soft Comfort
 w języku LD. Adresy sygnałów odpowiadają wejściom cyfrowym `I1`–`I4` oraz
 wyjściu cyfrowemu `Q1` sterownika LOGO!. Symulacja umożliwia wymuszanie stanów
-wejść przełącznikami oraz obserwację stanu wyjścia (żarówka `Q1`). Podstawy
-programowania sterowników PLC opisano m.in. w #cite(<kwasniewski2008>).
+wejść przełącznikami oraz obserwację stanu wyjścia (żarówka `Q1`).
 
 = Wykaz wejść i wyjść
 
@@ -147,18 +153,18 @@ $->$ program PLC $->$ test sprzętowy (lub w symulacji LOGO!).
 
 W języku LD koniunkcja (AND) odpowiada połączeniu szeregowemu styków,
 alternatywa (OR) — połączeniu równoległemu, a negacja (NOT) — stykowi
-normalnie zamkniętemu (NC) #cite(<flaga2010>) #cite(<legierski>).
+normalnie zamkniętemu (NC).
 
 = Funkcje logiczne
 
-W ćwiczeniu zaimplementowano następujące funkcje (operator $dot$ oznacza AND,
-$+$ oznacza OR, a $not$ — negację):
+W ćwiczeniu zaimplementowano następujące funkcje ($and$ = koniunkcja,
+$or$ = alternatywa, $not$ = negacja):
 
-- zadanie 1: $Y = A dot B + C$,
-- zadanie 2: $Y = (A + B) dot not C$,
+- zadanie 1: $Y = (A and B) or C$,
+- zadanie 2: $Y = (A or B) and not C$,
 - zadanie 3: $W = ((T and H) or A) and C$.
 
-= Zadanie 1 — $Y = A dot B + C$
+= Zadanie 1 — $Y = (A and B) or C$
 
 == Określenie kombinacji wejść
 
@@ -169,108 +175,176 @@ albo aktywne jest $C$.
 == Tablica prawdy
 
 Tablica #odnosnik(<tab-zad1>) zawiera wszystkie kombinacje wejść oraz wartość
-funkcji $Y = A dot B + C$.
+funkcji $Y = (A and B) or C$.
 
 #tabela(
-  [Tablica prawdy dla $Y = A dot B + C$],
+  [Tablica prawdy dla $Y = (A and B) or C$],
   tablica-prawdy-3((a, b, c) => {
     if (a == 1 and b == 1) or c == 1 { 1 } else { 0 }
   }),
 ) <tab-zad1>
 
+== Funkcja kanoniczna i minimalizacja
+
+Z tablicy prawdy widać, że $Y = 1$ dla kombinacji nr 1, 3, 5, 6 i 7, czyli:
+
+$ Y = sum m(1, 3, 5, 6, 7) $
+
+Pełna funkcja (jeszcze przed uproszczeniem):
+
+$ Y &= (not A and not B and C) \
+    & or (not A and B and C) \
+    & or (A and not B and C) \
+    & or (A and B and not C) \
+    & or (A and B and C) $
+
+Upraszczanie mapą Karnaugha (#odnosnik(<rys-kmap-zad1>)):
+- grupa 4 jedynek przy $C = 1$ (kombinacje 1, 3, 5, 7) → zostaje $C$,
+- grupa 2 jedynek przy $A = B = 1$ (kombinacje 6, 7) → zostaje $A and B$.
+
+#rysunek(
+  karnaugh(
+    ("a", "b", "c"),
+    (0, 1, 0, 1, 0, 1, 1, 1),
+    var-disp: ($A$, $B$, $C$),
+    terms: ("c", "a & b"),
+    grid-size: 1.05cm,
+  ),
+  [Mapa Karnaugha zadania 1 — grupy $C$ oraz $A and B$],
+) <rys-kmap-zad1>
+
+Po uproszczeniu wychodzi (to samo co w treści zadania):
+
+$ Y = (A and B) or C $
+
 == Schemat logiczny
 
-Schemat bramkowy dla zadania 1 przedstawia #odnosnik(<rys-zap-zad1>):
-bramka AND łączy $A$ i $B$, a bramka OR sumuje wynik z sygnałem $C$.
+Schemat bramkowy dla zminimalizowanej funkcji przedstawia
+#odnosnik(<rys-zap-zad1>): bramka AND łączy $A$ i $B$, a bramka OR sumuje
+wynik z sygnałem $C$.
 
 #rysunek(
   schemat-zap-zad1,
-  [Schemat logiczny funkcji $Y = A dot B + C$ (biblioteka Zap)],
+  [Schemat logiczny funkcji $Y = (A and B) or C$],
 ) <rys-zap-zad1>
 
 == Implementacja w PLC i test sprzętowy
 
 Funkcję zrealizowano w LD jako dwie równoległe gałęzie: szeregowe styki
 `I1` (A) i `I2` (B) oraz równoległy styk `I3` (C), z cewką wyjściową `Q1`.
-Schemat programu LD pokazuje #odnosnik(<rys-ld-zad1>).
+Poniżej schemat programu oraz stan z wszystkimi wejściami wyłączonymi.
 
-#rysunek(
-  image("/assets/zad1/0schemat.png", width: 10cm),
+
+#zrzut(
+  "/assets/zad1/0schemat.png",
   [Program LD zadania 1 w LOGO! Soft Comfort],
 ) <rys-ld-zad1>
 
-Wybrane stany symulacji udokumentowano na #odnosnik(<rys-zad1-000>),
-#odnosnik(<rys-zad1-101>) i #odnosnik(<rys-zad1-110>).
-
-#rysunek(
-  image("/assets/zad1/1wszystkieWylaczone.png", width: 9cm),
+#zrzut(
+  "/assets/zad1/1wszystkieWylaczone.png",
   [Zadanie 1: wszystkie wejścia wyłączone ($A B C = 000$), $Y = 0$],
 ) <rys-zad1-000>
 
-#rysunek(
-  image("/assets/zad1/2AiC-wlaczone-zalezy-od-c.png", width: 9cm),
+
+Kolejne kombinacje: wyjście aktywne dzięki $C$ oraz dzięki $A and B$.
+
+#zrzut(
+  "/assets/zad1/2AiC-wlaczone-zalezy-od-c.png",
   [Zadanie 1: $A = 1$, $C = 1$, $B = 0$ — wyjście aktywne dzięki gałęzi $C$],
 ) <rys-zad1-101>
 
-#rysunek(
-  image("/assets/zad1/3AiB-C-wylaczone.png", width: 9cm),
-  [Zadanie 1: $A = 1$, $B = 1$, $C = 0$ — wyjście aktywne dzięki $A dot B$],
+#zrzut(
+  "/assets/zad1/3AiB-C-wylaczone.png",
+  [Zadanie 1: $A = 1$, $B = 1$, $C = 0$ — wyjście aktywne dzięki $A and B$],
 ) <rys-zad1-110>
 
-= Zadanie 2 — $Y = (A + B) dot not C$
-
-== Synteza układu
-
-Układ składa się z bramki OR dla sygnałów $A$ i $B$, negacji sygnału $C$ oraz
-bramki AND łączącej oba wyniki (#odnosnik(<rys-zap-zad2>)). Wyjście jest
-aktywne, gdy co najmniej jedno z wejść $A$ lub $B$ jest równe 1 oraz jednocześnie
-$C = 0$.
-
-#rysunek(
-  schemat-zap-zad2,
-  [Schemat logiczny funkcji $Y = (A + B) dot not C$ (biblioteka Zap)],
-) <rys-zap-zad2>
+= Zadanie 2 — $Y = (A or B) and not C$
 
 == Tablica prawdy
 
+Wyjście jest aktywne, gdy co najmniej jedno z wejść $A$ lub $B$ jest równe 1
+oraz jednocześnie $C = 0$.
+
 #tabela(
-  [Tablica prawdy dla $Y = (A + B) dot not C$],
+  [Tablica prawdy dla $Y = (A or B) and not C$],
   tablica-prawdy-3((a, b, c) => {
     if (a == 1 or b == 1) and c == 0 { 1 } else { 0 }
   }),
 ) <tab-zad2>
 
+== Funkcja kanoniczna i minimalizacja
+
+$Y = 1$ dla kombinacji nr 2, 4 i 6:
+
+$ Y = sum m(2, 4, 6) $
+
+Pełna funkcja:
+
+$ Y &= (not A and B and not C) \
+    & or (A and not B and not C) \
+    & or (A and B and not C) $
+
+Na mapie Karnaugha (#odnosnik(<rys-kmap-zad2>)):
+- para przy $A and not C$ (kombinacje 4, 6) → $A and not C$,
+- para z zawinięciem przy $B and not C$ (kombinacje 2, 6) → $B and not C$.
+
+#rysunek(
+  karnaugh(
+    ("a", "b", "c"),
+    (0, 0, 1, 0, 1, 0, 1, 0),
+    var-disp: ($A$, $B$, $C$),
+    terms: ("a & !c", "b & !c"),
+    grid-size: 1.05cm,
+  ),
+  [Mapa Karnaugha zadania 2 — grupy $A and not C$ oraz $B and not C$],
+) <rys-kmap-zad2>
+
+Po uproszczeniu:
+
+$ Y &= (A and not C) or (B and not C) \
+    &= (A or B) and not C $
+
+== Schemat logiczny
+
+Układ składa się z bramki OR dla $A$ i $B$, negacji $C$ oraz bramki AND
+(#odnosnik(<rys-zap-zad2>)).
+
+#rysunek(
+  schemat-zap-zad2,
+  [Schemat logiczny funkcji $Y = (A or B) and not C$],
+) <rys-zap-zad2>
+
 == Implementacja algorytmu w PLC
 
 W LD sygnały $A$ (`I1`) i $B$ (`I2`) połączono równolegle (OR), a następnie
 szeregowo ze stykiem NC na `I3` (NOT $C$). Cewka `Q1` realizuje wyjście $Y$.
-Schemat programu przedstawia #odnosnik(<rys-ld-zad2>).
 
-#rysunek(
-  image("/assets/zad2/0schemat.png", width: 11cm),
+#zrzut(
+  "/assets/zad2/0schemat.png",
   [Program LD zadania 2 — styki równoległe A/B oraz NC dla C],
 ) <rys-ld-zad2>
 
-== Testy kombinacji wejściowych
-
-#rysunek(
-  image("/assets/zad2/1A-wlaczone-C-wylaczone.png", width: 9cm),
+#zrzut(
+  "/assets/zad2/1A-wlaczone-C-wylaczone.png",
   [Zadanie 2: kombinacja z włączonym $A$ i wyłączonym $C$],
 ) <rys-zad2-a>
 
-#rysunek(
-  image("/assets/zad2/2B-wlaczone-C-wylaczone.png", width: 9cm),
+#pagebreak()
+
+== Testy kombinacji wejściowych
+
+Dla $B = 1$ i $C = 0$ obserwowano $Y = 1$; przy $C = 1$ wyjście było
+wyłączone — zgodnie z Tabelą #odnosnik(<tab-zad2>).
+
+#zrzut(
+  "/assets/zad2/2B-wlaczone-C-wylaczone.png",
   [Zadanie 2: $B = 1$, $C = 0$ — wyjście $Y$ aktywne],
 ) <rys-zad2-b>
 
-#rysunek(
-  image("/assets/zad2/3AiB-C-wlaczone.png", width: 9cm),
+#zrzut(
+  "/assets/zad2/3AiB-C-wlaczone.png",
   [Zadanie 2: przy $C = 1$ wyjście pozostaje nieaktywne mimo struktury OR],
 ) <rys-zad2-c>
-
-Dla $B = 1$ i $C = 0$ obserwowano $Y = 1$ (#odnosnik(<rys-zad2-b>)), a przy
-$C = 1$ wyjście było wyłączone (#odnosnik(<rys-zad2-c>)), zgodnie z
-Tabelą #odnosnik(<tab-zad2>).
 
 = Zadanie 3 — sterowanie wentylatorem
 
@@ -279,21 +353,14 @@ Tabelą #odnosnik(<tab-zad2>).
 $T$ oznacza przekroczenie temperatury, $H$ przekroczenie wilgotności, $A$
 ręczne uruchomienie, $C$ poprawne zasilanie, a $W$ sterowanie wentylatorem.
 Wentylator może zostać uruchomiony automatycznie po jednoczesnym przekroczeniu
-temperatury i wilgotności albo ręcznie, ale tylko przy poprawnym zasilaniu:
+temperatury i wilgotności albo ręcznie, ale tylko przy poprawnym zasilaniu.
+Docelowa funkcja (po minimalizacji) ma postać
 $W = ((T and H) or A) and C$.
-
-== Schemat logiczny
-
-#rysunek(
-  schemat-zap-zad3,
-  [Schemat logiczny funkcji $W = ((T and H) or A) and C$ (biblioteka Zap)],
-) <rys-zap-zad3>
 
 == Tablica prawdy
 
-Układ ma cztery wejścia, dlatego wymaga sprawdzenia $2^4 = 16$ kombinacji.
-Wartości $W$ w Tabeli #odnosnik(<tab-zad3>) wynikają bezpośrednio z funkcji
-logicznej.
+Układ ma cztery wejścia, dlatego wymaga sprawdzenia $2^4 = 16$ kombinacji
+(Tabela #odnosnik(<tab-zad3>)).
 
 #tabela(
   [Tablica prawdy dla $W = ((T and H) or A) and C$],
@@ -322,41 +389,91 @@ logicznej.
   ),
 ) <tab-zad3>
 
-== Implementacja i test stanowiskowy
+== Funkcja kanoniczna i minimalizacja
 
-W LD zrealizowano równoległe połączenie gałęzi $T$-$H$ (szeregowo) z gałęzią
-$A$, a następnie szeregowo styk $C$ i cewkę $W$ (`Q1`), jak na
-#odnosnik(<rys-ld-zad3>).
+$W = 1$ dla kombinacji nr 3, 7, 11, 13 i 15:
+
+$ W = sum m(3, 7, 11, 13, 15) $
+
+Pełna funkcja:
+
+$ W &= (not T and not H and A and C) \
+    & or (not T and H and A and C) \
+    & or (T and not H and A and C) \
+    & or (T and H and not A and C) \
+    & or (T and H and A and C) $
+
+Na mapie Karnaugha (#odnosnik(<rys-kmap-zad3>)):
+- czwórka przy $A = C = 1$ (kombinacje 3, 7, 11, 15) → $A and C$,
+- para przy $T = H = C = 1$ (kombinacje 13, 15) → $T and H and C$.
 
 #rysunek(
-  image("/assets/zad3/0schemat.png", width: 11cm),
+  karnaugh(
+    ("t", "h", "a", "c"),
+    (
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+      0, 1, 0, 1,
+    ),
+    var-disp: ($T$, $H$, $A$, $C$),
+    terms: ("a & c", "t & h & c"),
+    grid-size: 0.95cm,
+  ),
+  [Mapa Karnaugha zadania 3 — grupy $A and C$ oraz $T and H and C$],
+) <rys-kmap-zad3>
+
+Po uproszczeniu (wspólne $C$ można wyłączyć przed nawias):
+
+$ W &= (A and C) or (T and H and C) \
+    &= C and (A or (T and H)) \
+    &= ((T and H) or A) and C $
+
+== Schemat logiczny
+
+#rysunek(
+  schemat-zap-zad3,
+  [Schemat logiczny funkcji $W = ((T and H) or A) and C$],
+) <rys-zap-zad3>
+
+== Implementacja i test stanowiskowy
+
+W LD zrealizowano równoległe połączenie gałęzi $T$–$H$ (szeregowo) z gałęzią
+$A$, a następnie szeregowo styk $C$ i cewkę $W$ (`Q1`).
+
+
+#zrzut(
+  "/assets/zad3/0schemat.png",
   [Program LD zadania 3 — sterowanie wentylatorem],
 ) <rys-ld-zad3>
 
-#rysunek(
-  image("/assets/zad3/1THC-wlaczone.png", width: 11cm),
+#zrzut(
+  "/assets/zad3/1THC-wlaczone.png",
   [Zadanie 3: $T = H = C = 1$, $A = 0$ — wentylator włączony automatycznie],
 ) <rys-zad3-thc>
 
-#rysunek(
-  image("/assets/zad3/AC-wlaczone.png", width: 11cm),
+
+Przy $T = H = C = 1$ i $A = 0$ wyjście $W$ było aktywne. Ręczne uruchomienie
+wymaga aktywnego $A$ oraz poprawnego zasilania $C$.
+
+#zrzut(
+  "/assets/zad3/AC-wlaczone.png",
   [Zadanie 3: ręczne uruchomienie z poprawnym zasilaniem ($A$ i $C$ aktywne)],
 ) <rys-zad3-ac>
 
-#rysunek(
-  image("/assets/zad3/TC-wylaczona-zarowka.png", width: 11cm),
+#zrzut(
+  "/assets/zad3/TC-wylaczona-zarowka.png",
   [Zadanie 3: $T = C = 1$ przy $H = A = 0$ — wyjście wyłączone (brak $H$ i $A$)],
 ) <rys-zad3-tc>
 
-#rysunek(
-  image("/assets/zad3/HC-wylaczona-zarowka.png", width: 11cm),
+
+Przy samym $T$ i $C$ bez $H$ oraz bez $A$ wyjście pozostawało wyłączone, co
+potwierdza konieczność koniunkcji $T and H$ w ścieżce automatycznej.
+
+#zrzut(
+  "/assets/zad3/HC-wylaczona-zarowka.png",
   [Zadanie 3: przypadek z wyłączoną żarówką Q1 (warunek $W$ niespełniony)],
 ) <rys-zad3-hc>
-
-Przy $T = H = C = 1$ i $A = 0$ wyjście $W$ było aktywne
-(#odnosnik(<rys-zad3-thc>)). Przy samym $T$ i $C$ bez $H$ oraz bez $A$
-wyjście pozostawało wyłączone (#odnosnik(<rys-zad3-tc>)), co potwierdza
-konieczność koniunkcji $T and H$ w ścieżce automatycznej.
 
 = Dokumentacja wyników
 
@@ -387,7 +504,7 @@ Pozostałe kombinacje wynikają z tablic prawdy (Tabele #odnosnik(<tab-zad1>),
 przez zaimplementowane funkcje LD.
 
 == Wykryte błędy i sposób ich usunięcia
-#import "@preview/zap:0.6.0"
+
 Podczas testów udokumentowanych zrzutami nie stwierdzono niezgodności między
 tablicą prawdy a zachowaniem programu w LOGO! Soft Comfort. Szczególną uwagę
 zwrócono na poprawne użycie styku NC w zadaniu 2 (negacja $C$) oraz na
@@ -398,18 +515,17 @@ nawet przy aktywnym $T$ i $H$ albo przy sygnale ręcznym $A$.
 
 W ramach ćwiczenia przeprowadzono analizę i syntezę układów sterowania
 kombinacyjnego oraz zaimplementowano opracowane algorytmy w środowisku
-Siemens LOGO! Soft Comfort (język LD). Schematy bramkowe sporządzono za pomocą
-biblioteki Zap, a działanie programów potwierdzono zrzutami stanów symulacji
+Siemens LOGO! Soft Comfort (język LD). Działanie programów potwierdzono zrzutami stanów symulacji
 dla reprezentatywnych kombinacji wejść.
 
 Testy wykazały zgodność działania z tablicami prawdy: w zadaniu 1 wyjście
-aktywuje się przez $A dot B$ albo przez $C$; w zadaniu 2 negacja $C$ blokuje
+aktywuje się przez $A and B$ albo przez $C$; w zadaniu 2 negacja $C$ blokuje
 wyjście niezależnie od $A$ i $B$; w zadaniu 3 wentylator włącza się przy
-$(T and H)$ lub przy $A$, ale wyłącznie gdy $C = 1$. Ćwiczenie pozwoliło
+$T and H$ lub przy $A$, ale wyłącznie gdy $C = 1$. Ćwiczenie pozwoliło
 praktycznie przećwiczyć pełny cykl: od funkcji logicznej, przez LD, do
 weryfikacji w symulacji LOGO!.
 
 #bibliografia(plik: "/literatura.bib", wlaczony: false)
-#spis-rysunkow()
-#spis-tabel()
+#spis-rysunkow(wlaczony: false)
+#spis-tabel(wlaczony: false)
 #spis-listingow(wlaczony: false)
