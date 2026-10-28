@@ -37,17 +37,8 @@ jobs:
         run: |
           typst compile main.typ
 
-      - name: Compile example PDFs
-        shell: bash
-        run: |
-          shopt -s nullglob
-          for file in przyklady/*.typ; do
-            typst compile --root . "$file" "${file%.typ}.pdf"
-          done
-
       - name: Release
         uses: softprops/action-gh-release@v3
         with:
           files: |
             main.pdf
-            przyklady/*.pdf
