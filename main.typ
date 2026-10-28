@@ -1,6 +1,9 @@
 // Sprawozdanie — plik główny.
 // Kompilacja: typst compile main.typ
 
+
+#import "@preview/zap:0.6.0"
+
 #import "szablon/template.typ": (
   bibliografia, praca, spis-tresci, spis-rysunkow, spis-tabel, spis-listingow,
 )
